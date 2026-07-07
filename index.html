@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Philemon</title>
+  <style>
+    @font-face {
+      font-family: 'Rhymes Text';
+      src: url('fonts/RhymesTextBold.otf') format('opentype');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      background: #fff;
+    }
+
+    body {
+      font-family: 'Rhymes Text', Georgia, serif;
+      color: #000;
+      height: 400vh; /* scroll runway that drives the animation */
+    }
+
+    .stage {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+    }
+
+    .letter {
+      position: absolute;
+      font-weight: 700;
+      transform: translate(-50%, -50%);
+      user-select: none;
+      line-height: 1;
+      opacity: 0;
+      transition: opacity 1.5s ease;
+      white-space: pre;
+    }
+
+    .letter.shown {
+      opacity: 1;
+    }
+
+    /* Hidden reference layouts used to measure letter targets */
+    .ref {
+      position: absolute;
+      left: 50%;
+      white-space: nowrap;
+      font-weight: 700;
+      line-height: 1;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    #ref-big {
+      top: 50%;
+      transform: translate(-50%, -50%);
+      font-size: clamp(40px, 9vw, 150px);
+    }
+
+    #ref-small {
+      top: clamp(26px, 5vh, 44px);
+      transform: translateX(-50%);
+      font-size: clamp(12.6px, 1.37vw, 15.75px);
+    }
+
+    .about {
+      position: absolute;
+      left: 50%;
+      top: auto;
+      bottom: calc(clamp(18px, 3.3vh, 32px) - 44px); /* last line sits on the nav row */
+      width: min(88%, 920px);
+      height: 150px;
+      transform: translateX(-50%);
+      text-align: center;
+      font-weight: 700;
+      font-size: 16px;
+      line-height: 1.25;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Diamond flow: two shaped floats squeeze the text
+       narrow at top, wide in the middle, narrow at bottom */
+    .about .dl,
+    .about .dr {
+      height: 100%;
+      width: 50%;
+    }
+
+    .about .dl {
+      float: left;
+      shape-outside: polygon(0 0, 45% 0, 0 50%, 45% 100%, 0 100%);
+    }
+
+    .about .dr {
+      float: right;
+      shape-outside: polygon(100% 0, 55% 0, 100% 50%, 55% 100%, 100% 100%);
+    }
+
+    nav {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: clamp(20px, 3.5vh, 34px);
+      height: 1em;
+      font-size: clamp(12.6px, 1.37vw, 15.75px);
+      letter-spacing: -0.02em;
+      z-index: 10;
+    }
+
+    nav a {
+      position: absolute;
+      color: #000;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    nav .fall {
+      position: absolute;
+      left: clamp(24px, 6vw, 72px);
+      font-weight: 700;
+    }
+
+    nav .press {
+      right: clamp(24px, 6vw, 72px);
+    }
+
+    nav a:hover {
+      opacity: 0.5;
+    }
+
+    @media (max-width: 820px) {
+      .about {
+        width: 88%;
+        height: auto;
+        bottom: 19vh; /* keep the block up, off the nav row */
+        font-size: clamp(17px, 4.7vw, 24px);
+        line-height: 1.3;
+      }
+
+      /* no diamond on small screens, not enough width */
+      .about .dl,
+      .about .dr {
+        display: none;
+      }
+
+      nav {
+        font-size: 17px;
+      }
+
+      #ref-small {
+        font-size: 17px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="stage" id="stage">
+    <span class="letter">P</span>
+    <span class="letter">H</span>
+    <span class="letter">I</span>
+    <span class="letter">L</span>
+    <span class="letter">E</span>
+    <span class="letter">M</span>
+    <span class="letter">O</span>
+    <span class="letter">N</span>
+
+    <div class="ref" id="ref-big"><span>P</span><span>H</span><span>I</span><span>L</span><span>E</span><span>M</span><span>O</span><span>N</span></div>
+    <div class="ref" id="ref-small"><span>P</span><span>H</span><span>I</span><span>L</span><span>E</span><span>M</span><span>O</span><span>N</span></div>
+
+    <div class="about" id="about">
+      <div class="dl"></div><div class="dr"></div>
+      <p>Philemon takes its name from a winged figure who appeared to Carl Jung in his visions and active imagination. Jung described Philemon as a presence who seemed to know more than he did, a companion that revealed understanding through reflection, imagination, and dialogue. A space that carries that figure&rsquo;s meaning into physical form through shared rituals that expand the mind, allowing a shifted state to emerge.</p>
+    </div>
+  </div>
+
+  <nav>
+    <span class="fall">FALL 2026</span>
+    <a class="press" href="press.html">PRESS</a>
+  </nav>
+
+  <script>
+    const letters  = Array.from(document.querySelectorAll('.letter'));
+    const about    = document.getElementById('about');
+    const refBig   = Array.from(document.querySelectorAll('#ref-big span'));
+    const refSmall = Array.from(document.querySelectorAll('#ref-small span'));
+
+    // Scattered start positions (% of viewport)
+    const SCATTER = [
+      [10.5, 27], [49, 27], [93.5, 27],
+      [33, 48.5], [70, 49.5],
+      [13, 70], [49.5, 70.5], [90, 70],
+    ];
+
+    // Phase boundaries along the scroll runway
+    const P1 = 0.35;  // scattered -> one line, centered
+    const P2 = 0.70;  // one line -> small, at top
+                      // beyond P2: paragraph rises in
+
+    let scatterPos, bigPos, smallPos, scatterSize, bigSize, smallSize;
+
+    function measure() {
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      scatterSize = Math.min(Math.max(64, vw * 0.10), 160);
+      bigSize   = parseFloat(getComputedStyle(document.getElementById('ref-big')).fontSize);
+      smallSize = parseFloat(getComputedStyle(document.getElementById('ref-small')).fontSize);
+      scatterPos = SCATTER.map(([x, y]) => [vw * x / 100, vh * y / 100]);
+      const center = r => [r.left + r.width / 2, r.top + r.height / 2];
+      bigPos   = refBig.map(s => center(s.getBoundingClientRect()));
+      smallPos = refSmall.map(s => center(s.getBoundingClientRect()));
+    }
+
+    const ease = t => t * t * (3 - 2 * t);
+    const lerp = (a, b, t) => a + (b - a) * t;
+
+    function update() {
+      const max = document.body.scrollHeight - window.innerHeight;
+      const p = max > 0 ? Math.min(1, window.scrollY / max) : 0;
+
+      let from, to, t, s0, s1;
+      if (p < P1) {
+        from = scatterPos; to = bigPos;
+        t = ease(p / P1);
+        s0 = scatterSize; s1 = bigSize;
+      } else if (p < P2) {
+        from = bigPos; to = smallPos;
+        t = ease((p - P1) / (P2 - P1));
+        s0 = bigSize; s1 = smallSize;
+      } else {
+        from = smallPos; to = smallPos;
+        t = 1;
+        s0 = smallSize; s1 = smallSize;
+      }
+
+      const size = lerp(s0, s1, t);
+      letters.forEach((el, i) => {
+        el.style.left = lerp(from[i][0], to[i][0], t) + 'px';
+        el.style.top  = lerp(from[i][1], to[i][1], t) + 'px';
+        el.style.fontSize = size + 'px';
+      });
+
+      // Paragraph: rises in like a teleprompter as you keep scrolling
+      if (p <= P2) {
+        about.style.opacity = 0;
+      } else {
+        const ta = ease((p - P2) / (1 - P2));
+        about.style.opacity = ta;
+        const rise = (1 - ta) * window.innerHeight * 0.35;
+        about.style.transform = `translate(-50%, ${rise}px)`;
+      }
+    }
+
+    // Staggered reveal in random order on load
+    letters.forEach(el => {
+      const delay = 200 + Math.random() * 2600;
+      setTimeout(() => el.classList.add('shown'), delay);
+    });
+
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', () => {
+      // re-measure once fonts/layout settle
+      measure();
+      update();
+    });
+
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(() => { measure(); update(); });
+    }
+    measure();
+    update();
+  </script>
+</body>
+</html>
