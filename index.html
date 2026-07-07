@@ -327,8 +327,6 @@
         about.style.opacity = ta;
         const rise = (1 - ta) * window.innerHeight * 0.35;
         about.style.transform = `translate(-50%, ${rise}px)`;
-        // arrives out of focus, sharpens as it settles
-        about.style.filter = `blur(${((1 - ta) * 5).toFixed(2)}px)`;
         // FALL 2026 + PRESS fade in only once the text has fully arrived
         document.body.classList.toggle('nav-on', ta > 0.92);
         // once the text has fully settled, give it a few seconds, then let it dissolve
