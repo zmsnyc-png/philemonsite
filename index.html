@@ -42,7 +42,7 @@
       user-select: none;
       line-height: 1;
       opacity: 0;
-      transition: opacity 1.5s ease;
+      transition: opacity 1.5s ease, transform 1.5s ease, filter 1.5s ease;
       white-space: pre;
     }
 
@@ -118,6 +118,30 @@
       opacity: 0;
       filter: blur(7px);
       transform: translate(var(--dx, 0), var(--dy, 30px)) rotate(var(--rot, 0deg));
+    }
+
+    /* The wordmark letters fly away too, each at its own pace */
+    body.dissolve-all .letter {
+      opacity: 0;
+      filter: blur(6px);
+      transform: translate(calc(-50% + var(--fx, 0px)), calc(-50% + var(--fy, -60px))) rotate(var(--fr, 0deg));
+      transition:
+        opacity 3.4s ease-in var(--fd, 0s),
+        transform 3.4s ease-in var(--fd, 0s),
+        filter 3.4s ease-in var(--fd, 0s);
+    }
+
+    /* PRESS drifts off last and slowest; FALL 2026 stays */
+    nav .press {
+      transition: opacity 1s ease, transform 1s ease, filter 1s ease;
+    }
+
+    body.dissolve-all nav .press {
+      opacity: 0;
+      filter: blur(6px);
+      transform: translateY(-70px) rotate(5deg);
+      pointer-events: none;
+      transition: opacity 3s ease-in 1.6s, transform 3s ease-in 1.6s, filter 3s ease-in 1.6s;
     }
 
     nav {
@@ -297,6 +321,7 @@
         clearTimeout(dissolveTimer);
         dissolveTimer = null;
         about.classList.remove('dissolve');
+        document.body.classList.remove('dissolve-all');
       } else {
         const ta = ease((p - P2) / (1 - P2));
         about.style.opacity = ta;
@@ -308,7 +333,10 @@
         document.body.classList.toggle('nav-on', ta > 0.92);
         // once the text has fully settled, give it a few seconds, then let it dissolve
         if (ta > 0.99 && !dissolveTimer && !about.classList.contains('dissolve')) {
-          dissolveTimer = setTimeout(() => about.classList.add('dissolve'), 7000);
+          dissolveTimer = setTimeout(() => {
+            about.classList.add('dissolve');
+            document.body.classList.add('dissolve-all');
+          }, 7000);
         }
       }
     }
@@ -317,6 +345,11 @@
     letters.forEach(el => {
       const delay = 200 + Math.random() * 2600;
       setTimeout(() => el.classList.add('shown'), delay);
+      // each letter gets its own flight path for the dissolve
+      el.style.setProperty('--fx', (Math.random() * 60 - 30).toFixed(0) + 'px');
+      el.style.setProperty('--fy', '-' + (30 + Math.random() * 70).toFixed(0) + 'px');
+      el.style.setProperty('--fr', (Math.random() * 16 - 8).toFixed(1) + 'deg');
+      el.style.setProperty('--fd', (Math.random() * 1.6).toFixed(2) + 's');
     });
 
     // Smoothed scroll: the page eases toward the scroll position every frame,
