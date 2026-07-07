@@ -116,6 +116,14 @@
       font-size: clamp(12.6px, 1.37vw, 15.75px);
       letter-spacing: -0.02em;
       z-index: 10;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 1.2s ease;
+    }
+
+    body.nav-on nav {
+      opacity: 1;
+      pointer-events: auto;
     }
 
     nav a {
@@ -253,11 +261,14 @@
       // Paragraph: rises in like a teleprompter as you keep scrolling
       if (p <= P2) {
         about.style.opacity = 0;
+        document.body.classList.remove('nav-on');
       } else {
         const ta = ease((p - P2) / (1 - P2));
         about.style.opacity = ta;
         const rise = (1 - ta) * window.innerHeight * 0.35;
         about.style.transform = `translate(-50%, ${rise}px)`;
+        // FALL 2026 + PRESS fade in only once the text has fully arrived
+        document.body.classList.toggle('nav-on', ta > 0.92);
       }
     }
 
