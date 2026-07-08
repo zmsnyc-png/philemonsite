@@ -107,17 +107,31 @@
       shape-outside: polygon(100% 0, 55% 0, 100% 50%, 55% 100%, 100% 100%);
     }
 
-    /* Dissolve: each word blurs, crumbles and falls away on its own */
+    /* Words assemble out of scatter on arrival, and scatter again on dissolve */
     .about .w {
       display: inline-block;
-      transition: transform 2.8s ease-in, opacity 2.8s ease-in, filter 2.8s ease-in;
-      transition-delay: var(--dd, 0s);
+      transition:
+        transform 2.6s cubic-bezier(0.22, 1, 0.36, 1) var(--dd, 0s),
+        opacity 2.6s cubic-bezier(0.22, 1, 0.36, 1) var(--dd, 0s),
+        filter 2.6s cubic-bezier(0.22, 1, 0.36, 1) var(--dd, 0s);
+    }
+
+    /* waiting state: words sit scattered and invisible, no animation */
+    .about.scattered .w {
+      opacity: 0;
+      filter: blur(7px);
+      transform: translate(var(--dx, 0), var(--dy, -30px)) rotate(var(--rot, 0deg));
+      transition: none;
     }
 
     .about.dissolve .w {
       opacity: 0;
       filter: blur(7px);
-      transform: translate(var(--dx, 0), var(--dy, 30px)) rotate(var(--rot, 0deg));
+      transform: translate(var(--dx, 0), var(--dy, -30px)) rotate(var(--rot, 0deg));
+      transition:
+        transform 2.8s ease-in var(--dd, 0s),
+        opacity 2.8s ease-in var(--dd, 0s),
+        filter 2.8s ease-in var(--dd, 0s);
     }
 
     /* The wordmark letters fly away too, each at its own pace */
@@ -289,6 +303,7 @@
         `--dd:${(Math.random() * 1.4).toFixed(2)}s">${w}</span>`
       ).join(' ');
     });
+    about.classList.add('scattered'); // words wait scattered until they assemble
 
     function render(p) {
       let from, to, t, s0, s1;
@@ -321,12 +336,13 @@
         clearTimeout(dissolveTimer);
         dissolveTimer = null;
         about.classList.remove('dissolve');
+        about.classList.add('scattered');
         document.body.classList.remove('dissolve-all');
       } else {
         const ta = ease((p - P2) / (1 - P2));
-        about.style.opacity = ta;
-        const rise = (1 - ta) * window.innerHeight * 0.35;
-        about.style.transform = `translate(-50%, ${rise}px)`;
+        about.style.opacity = 1;
+        // words fly in from their scatter and assemble
+        if (ta > 0.2) about.classList.remove('scattered');
         // FALL 2026 + PRESS fade in only once the text has fully arrived
         document.body.classList.toggle('nav-on', ta > 0.92);
         // once the text has fully settled, give it a few seconds, then let it dissolve
