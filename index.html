@@ -280,9 +280,11 @@
       bigSize   = parseFloat(getComputedStyle(document.getElementById('ref-big')).fontSize);
       smallSize = parseFloat(getComputedStyle(document.getElementById('ref-small')).fontSize);
       scatterPos = SCATTER.map(([x, y]) => {
-        // on mobile, pull the scatter inward so letters keep clear of the edges
+        // on mobile, pull the scatter inward so letters keep clear of the edges,
+        // and snap each row to one baseline (the desktop offsets read as misaligned there)
         const xa = vw <= 820 ? 50 + (x - 50) * 0.76 : x;
-        return [vw * xa / 100, vh * y / 100];
+        const ya = vw <= 820 ? (y < 40 ? 27 : y < 60 ? 49 : 70) : y;
+        return [vw * xa / 100, vh * ya / 100];
       });
       const center = r => [r.left + r.width / 2, r.top + r.height / 2];
       bigPos   = refBig.map(s => center(s.getBoundingClientRect()));
