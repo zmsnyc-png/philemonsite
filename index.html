@@ -77,7 +77,7 @@
       position: absolute;
       left: 50%;
       top: auto;
-      bottom: calc(clamp(18px, 3.3vh, 32px) - 56px); /* last line sits on the nav row */
+      bottom: 8vh;
       width: min(88%, 920px);
       height: 150px;
       transform: translateX(-50%);
@@ -162,7 +162,7 @@
       position: fixed;
       left: 0;
       right: 0;
-      bottom: clamp(12px, 2.2vh, 24px);
+      bottom: clamp(20px, 3.2vh, 34px);
       height: 1em;
       font-size: clamp(12.6px, 1.37vw, 15.75px);
       letter-spacing: -0.02em;
@@ -198,6 +198,24 @@
       opacity: 0.5;
     }
 
+    /* small confirmation when the press email is copied */
+    #toast {
+      position: fixed;
+      right: clamp(24px, 6vw, 72px);
+      bottom: calc(clamp(20px, 3.2vh, 34px) + 2.2em);
+      font-weight: 700;
+      font-size: clamp(12.6px, 1.37vw, 15.75px);
+      letter-spacing: -0.02em;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.6s ease;
+      z-index: 20;
+    }
+
+    #toast.on {
+      opacity: 1;
+    }
+
     @media (max-width: 820px) {
       .about {
         width: 88%;
@@ -214,6 +232,10 @@
       }
 
       nav {
+        font-size: 15px;
+      }
+
+      #toast {
         font-size: 15px;
       }
 
@@ -249,8 +271,10 @@
 
   <nav>
     <span class="fall">FALL 2026</span>
-    <a class="press" href="press.html">PRESS</a>
+    <a class="press" href="mailto:press@philemon.space">PRESS</a>
   </nav>
+
+  <div id="toast">press@philemon.space copied</div>
 
   <script>
     const letters  = Array.from(document.querySelectorAll('.letter'));
@@ -406,6 +430,26 @@
       render(pCur);
       requestAnimationFrame(tick);
     }
+
+    // PRESS copies the press email and shows a small confirmation
+    const toast = document.getElementById('toast');
+    let toastTimer = null;
+    document.querySelector('nav .press').addEventListener('click', e => {
+      e.preventDefault();
+      const email = 'press@philemon.space';
+      const show = () => {
+        toast.classList.add('on');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove('on'), 2500);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(email).then(show).catch(() => {
+          window.location.href = 'mailto:' + email; // fallback: open mail app
+        });
+      } else {
+        window.location.href = 'mailto:' + email;
+      }
+    });
 
     window.addEventListener('resize', () => {
       // re-measure once fonts/layout settle
