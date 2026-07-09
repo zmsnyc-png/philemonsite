@@ -28,7 +28,7 @@
     body {
       font-family: 'Rhymes Text', Georgia, serif;
       color: #000;
-      height: 300vh; /* scroll runway that drives the animation */
+      height: 240vh; /* scroll runway that drives the animation */
     }
 
     .stage {
@@ -365,12 +365,12 @@
       } else {
         const ta = ease((p - P2) / (1 - P2));
         about.style.opacity = 1;
-        // words fly in from their scatter and assemble
-        if (ta > 0.2) about.classList.remove('scattered');
-        // FALL 2026 + PRESS fade in only once the text has fully arrived
-        document.body.classList.toggle('nav-on', ta > 0.92);
-        // once the text has fully settled, give it a few seconds, then let it dissolve
-        if (ta > 0.99 && !dissolveTimer && !about.classList.contains('dissolve')) {
+        // the first nudge past the assembled wordmark reveals the whole
+        // final section at once: text, FALL 2026 and PRESS
+        if (ta > 0.05) about.classList.remove('scattered');
+        document.body.classList.toggle('nav-on', ta > 0.05);
+        // once the text has settled, give it a few seconds, then let it dissolve
+        if (ta > 0.05 && !dissolveTimer && !about.classList.contains('dissolve')) {
           dissolveTimer = setTimeout(() => {
             about.classList.add('dissolve');
             document.body.classList.add('dissolve-all');
