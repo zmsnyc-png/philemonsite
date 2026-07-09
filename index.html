@@ -89,6 +89,7 @@
       line-height: 1.25;
       opacity: 0;
       pointer-events: none;
+      transform-origin: 50% 100%;
     }
 
     /* Diamond flow: two shaped floats squeeze the text
@@ -353,7 +354,11 @@
       });
 
       // Paragraph: rises in like a teleprompter as you keep scrolling
-      if (p <= P2) {
+      // The text's journey starts as soon as the wordmark has formed and
+      // begins rising: it assembles large in the middle, then shrinks
+      // down into its final place as the scroll completes.
+      const T0 = P1 + 0.06;
+      if (p <= T0) {
         about.style.opacity = 0;
         document.body.classList.remove('nav-on');
         // scrolling back up resets the mystery
@@ -363,14 +368,28 @@
         about.classList.add('scattered');
         document.body.classList.remove('dissolve-all');
       } else {
-        const ta = ease((p - P2) / (1 - P2));
+        const ta = ease((p - T0) / (1 - T0));
         about.style.opacity = 1;
+        // Act one: the text assembles large in the middle of the page and holds there.
+        // Act two: the final scroll lets it fall and settle into its small place below.
+        const maxS = Math.max(1, Math.min(1.6, window.innerWidth / (about.offsetWidth + 60)));
+        const HOLD = 0.55;
+        let s, lift;
+        if (ta < HOLD) {
+          s = maxS;
+          lift = window.innerHeight * 0.3;
+        } else {
+          const tb = ease((ta - HOLD) / (1 - HOLD));
+          s = maxS - (maxS - 1) * tb;
+          lift = window.innerHeight * 0.3 * (1 - tb);
+        }
+        about.style.transform = `translate(-50%, ${-lift.toFixed(1)}px) scale(${s.toFixed(4)})`;
         // the first nudge past the assembled wordmark reveals the whole
         // final section at once: text, FALL 2026 and PRESS
         if (ta > 0.05) about.classList.remove('scattered');
         document.body.classList.toggle('nav-on', ta > 0.05);
-        // once the text has settled, give it a few seconds, then let it dissolve
-        if (ta > 0.05 && !dissolveTimer && !about.classList.contains('dissolve')) {
+        // once the text has settled at the bottom, give it a few seconds, then let it dissolve
+        if (ta > 0.9 && !dissolveTimer && !about.classList.contains('dissolve')) {
           dissolveTimer = setTimeout(() => {
             about.classList.add('dissolve');
             document.body.classList.add('dissolve-all');
